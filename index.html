@@ -70,7 +70,7 @@
    camera: false;
   </div>
   <br />
-  <label class="mark" id="filelabel" for="file">src: undefined;</label><br />
+  <label class="mark" id="filelabel" for="file">src: click this!;</label><br />
   width: <input type="number" min="1" max="10000" id="width" value="67" onchange="changewidth(this.value)" />;<br />
   <div class="mark" id="togglevideo" onclick="togglevideo();">
    loading
@@ -223,6 +223,7 @@
      ASCIIvideo.style.lineHeight = lh+'px';
      render = false;
      videotag.pause();
+     playpause.innerHTML = '<font color="blue">paused</font>';
     }
     //setelah selesai kita pas in element ascii ke tengah canvas ke tengah
     if (ASCIIvideo.clientHeight > ch) {
