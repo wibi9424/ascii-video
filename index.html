@@ -2,9 +2,7 @@
 <head>
  <title>ascii video</title>
  <meta name="viewport" content="width=device-width,height=device-height">
- <link rel="preconnect" href="https://fonts.googleapis.com">
- <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
- <link href="https://fonts.googleapis.com/css2?family=Nanum+Gothic+Coding&display=swap" rel="stylesheet">
+ <link href="https://fonts.cdnfonts.com/css/droid-sans-mono-2" rel="stylesheet">
  <style>
   body {
    color: #ffffff;
@@ -13,7 +11,7 @@
    margin: 0;
    padding: 0;
    image-rendering: pixelated;
-   font-family: 'Nanum Gothic Coding', monospace;
+   font-family: 'Droid Sans Mono', monospace;
   }
 
   .button {
@@ -34,7 +32,7 @@
    opacity: 50%;
   }
   .render #ASCIIvideo {
-   font-family: 'Nanum Gothic Coding', monospace;
+   font-family: 'Droid Sans Mono', monospace;
    font-size: 8px;
    letter-spacing: 0;
    background-color: #000000;
@@ -147,7 +145,7 @@
   //menerapkan value awal di setiap variabel
 
   ///////
-  var chars = "MBRROG33SIIllii;;::... ";
+  var chars = "MBRROGSS3IIlli|¡;:``·· ";
   //ini karakter dari gelap ke terang,
   //menyesuaikan huruf itu susah,
   //tapi ini lah yang menurutku pas,
@@ -192,8 +190,8 @@
     }
     canvas = document.getElementById('canvas');
     canvas.width = w; //ubah lebar canvas menjadi jumlah huruf yang horizontal
-    canvas.height = Math.round(h * 0.68); //menggepengkan tinggi video, pixel itu kotak, sedangkan huruf nggak kotak, dia lebih tinggi, jadi kita gepengkan agar saat diterapkan ke huruf dan melebar nanti jadi pas lagi ukurannya
-    s = 4; //skala mengubah ukuran canvas dan elemen video sesuai dengan jumlah huruf vertikal dan horizontal
+    canvas.height = Math.round(h * 0.7); //menggepengkan tinggi video, pixel itu kotak, sedangkan huruf nggak kotak, dia lebih tinggi, jadi kita gepengkan agar saat diterapkan ke huruf dan melebar nanti jadi pas lagi ukurannya
+    s = 4.3; //skala mengubah ukuran canvas dan elemen video sesuai dengan jumlah huruf vertikal dan horizontal
     cw = w * s;
     ch = h * s;
     canvas.style.width = cw + 'px';
