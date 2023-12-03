@@ -1,0 +1,518 @@
+<html>
+<head>
+ <title>ascii video</title>
+ <meta name="viewport" content="width=device-width,height=device-height">
+ <link href="https://fonts.cdnfonts.com/css/droid-sans-mono-2" rel="stylesheet">
+ <style>
+  body {
+   color: #ffffff;
+   background-color: #000000;
+   text-align: left;
+   margin: 0;
+   padding: 0;
+   image-rendering: pixelated;
+   font-family: 'Droid Sans Mono', monospace;
+  }
+
+  .button {
+   background-color: #000;
+   color: #fff;
+   cursor: pointer;
+   padding: 0px 2px;
+   user-select: none;
+  }
+
+  .render #video {
+   position: absolute;
+  }
+
+  .render #canvas {
+   position: absolute;
+   display: none;
+   opacity: 50%;
+  }
+  .render #ASCIIvideo {
+   font-family: 'Droid Sans Mono', monospace;
+   font-size: 8px;
+   letter-spacing: 0;
+   background-color: #000000;
+   margin: 0;
+   padding-top: 0px;
+   position: absolute;
+  }
+  .mark, .button {
+   position: relative !important;
+   display: inline-block !important;
+  }
+  .controls {
+   font-size: 16.5px;
+  }
+  .controls #file {
+   width: 0;
+   height: 0;
+   position: absolute;
+  }
+  .controls input {
+   background-color: black;
+   color: white;
+   border: 0;
+  }
+ </style>
+</head>
+<body id="body">
+ <div class='controls'>
+  config{
+  <br />
+  <input type="file" accept="video/*" id="file" />
+  <div class="mark" id="togglecamera" onclick="togglecamera()">
+   camera: false;
+  </div>
+  <br />
+  <label class="mark" id="filelabel" for="file">src: undefined;</label><br />
+  width: <input type="number" min="1" max="10000" id="width" value="67" onchange="changewidth(this.value)" />;<br />
+  <div class="mark" id="togglevideo" onclick="togglevideo();">
+   loading
+  </div>
+  <br /><div class="mark" id="togglecolor" onclick="togglecolor();">
+   loading
+  </div>
+  <br />
+  <div class="mark" id="togglereverse" onclick="togglereverse()">
+   loading
+  </div>
+  <br />
+  brightness: <input class="mark" type="range" min="0.001" value="1" step="0.001" max="2" id="changebrightnesse" />;
+  <br />
+  <div class="mark" id="edgeid" onclick="sobeltogle();">edge: false;</div>
+  <br />
+  bloom: <div class="mark" id="bloom" onclick="togglebloom();">
+   loading
+  </div>
+  <br />
+  <div class="mark" onclick="switchchar(0);">char kind:</div>
+  <div class="mark" onclick="switchchar(0);"> 1</div>
+  <div class="mark" onclick="switchchar(1);"> 2</div>
+  <div class="mark" onclick="switchchar(2);"> 3</div>
+  <br />
+  }
+ </div>
+ <div class="controls">
+  <div class="button" id="playpause" onclick="playPause();">
+   Loading
+  </div>
+  <div class="mark" id='consolelog'>
+   Loading
+  </div>
+ </div>
+ <br />
+ <div class='render'>
+  <video id="video" width="100%" controls>
+  </video>
+  <canvas id='canvas'></canvas>
+  <pre class="mark" id="ASCIIvideo" onclick="playPause();"></pre>
+ </div>
+ <script>
+  const body = document.getElementById('body');
+  const fileinput = document.getElementById('file');
+  const camerainput = document.getElementById('togglecamera');
+  const filelabel = document.getElementById('filelabel');
+  const widthinput = document.getElementById('width');
+  const togglereversee = document.getElementById('togglereverse');
+  togglereversee.innerHTML = 'theme: night;';
+  const changebrightnesse = document.getElementById('changebrightnesse');
+  const edgeid = document.getElementById('edgeid');
+  const bloome = document.getElementById('bloom');
+  bloome.innerHTML = 'false';
+  const videotag = document.getElementById('video');
+  const ASCIIvideo = document.getElementById('ASCIIvideo');
+  const consolelog = document.getElementById('consolelog');
+  const playpause = document.getElementById('playpause');
+  const togglevideoe = document.getElementById('togglevideo');
+  togglevideoe.innerHTML = 'color1: false;';
+  const togglecolore = document.getElementById('togglecolor');
+  togglecolore.innerHTML = 'color2: false;<font color="green">//lag</font>';
+
+  fileinput.onchange = () => {
+   const selectedFile = fileinput.files[0];
+   console.log('loaded ' + selectedFile.name);
+   if (selectedFile) {
+    const videoURL = URL.createObjectURL(selectedFile);
+    videotag.src = videoURL;
+    vwidth = 0;
+    videoload();
+    filelabel.innerHTML = 'src: "' + selectedFile.name + '";';
+    brightness = 1;
+    changebrightnesse.value = 1;
+   } else {
+    videotag.src = '';
+   }
+  }
+
+  ///////character kind
+  var chark = [];
+  chark[0] = "MBRROGSS3IIlli|¡;:``·· ";
+  chark[1] = "M@®BDNQRO0G8U69£F2Icilstvxz{}[]()|×=+/!^\\;~-':,. ";
+  chark[2] = "¶@@@@M®BBgNQW&©%DRpq#HObdmw8$∆G06AEKPUh9€SXZek4π£¥Vauy35CFjno2fx™IYsv√¢{}[]LTciltz7J()*?1|r×=<>+/^\\!_\"•°;~:-'``` ";
+    
+  function switchchar(value = 0){
+   if(r){
+    togglereverse();
+    chars = chark[value];
+    togglereverse();
+   } else {
+    chars = chark[value];
+   }
+  }
+  switchchar();
+  brightness = 1;
+  
+  bloom = false;
+  sobel = false;
+  var r = false;
+  chars.split('');
+
+
+  var w = 67;
+  var c = false;
+  var vc = false; 
+  var camera = false;
+
+  var fps = 0;
+  var render = false;
+
+  function videoload() {
+
+   vwidth = videotag.videoWidth;
+   vheight = videotag.videoHeight;
+
+   if (vwidth == 0) {
+    requestAnimationFrame(videoload);
+   } else {
+    h = (w / vwidth) * vheight;
+    if (camera == true) {
+     h = w;
+    }
+    canvas = document.getElementById('canvas');
+    canvas.width = w;
+    canvas.height = Math.round(h * 0.7);
+    s = 4.8;
+    cw = w * s;
+    ch = h * s;
+    canvas.style.width = cw + 'px';
+    canvas.style.height = ch +'px';
+    lh = 0;
+    ASCIIvideo.style.lineHeight = lh + 'px';
+    videotag.style.width = cw + 'px';
+    ctx = canvas.getContext("2d");
+    ctx.drawImage(videotag, 0, 0, canvas.width, canvas.height);
+    viddata = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+
+    asciiFrame = "";
+    for (i = 0; i < viddata.length; i += 4) {
+     asciiFrame += 'M';
+     if ((i + 4) % (w * 4) === 0) {
+      asciiFrame += "\n";
+     }
+    }
+    ASCIIvideo.innerHTML = asciiFrame;
+
+    while (ASCIIvideo.clientHeight < ch) {
+     lh += 0.1;
+     ASCIIvideo.style.lineHeight = lh+'px';
+     render = false;
+     videotag.pause();
+    }
+    if (ASCIIvideo.clientHeight > ch) {
+     ASCIIvideo.style.marginTop = (ch - ASCIIvideo.clientHeight) * 0.4;
+    }
+   }
+  }
+
+  videotoascii();
+
+  function videotoascii() {
+   if (render) {
+    fps += 1;
+
+    ctx.drawImage(videotag, 0, 0, canvas.width, canvas.height);
+    imgdata = ctx.getImageData(0, 0, canvas.width, canvas.height)
+    
+    if(sobel){
+    let filtersobel = applySobelFilter(imgdata);
+    ctx.putImageData(filtersobel, 0, 0);
+    }
+    viddata = imgdata.data;
+    
+    asciiFrame = "";
+    for (i = 0; i < viddata.length; i += 4) {
+     const r = viddata[i];
+     const g = viddata[i + 1];
+     const b = viddata[i + 2];
+     grayscale = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+     grayscale *= brightness;
+     if (grayscale > 255) {
+      grayscale = 255;
+     }
+     if(grayscale < 0){
+      grayscale = 0;
+     }
+     
+     asciiIndex = Math.floor(grayscale / 255 * (chars.length - 1));
+     asciiChar = convertToHtmlEntities(chars[chars.length - 1 - asciiIndex]);
+     if (c) {
+      asciiFrame += `<a style="color:rgb(${r},${g},${b})">${asciiChar}</a>`;
+     } else {
+      asciiFrame += asciiChar;
+     }
+
+     if ((i + 4) % (w * 4) === 0) {
+      asciiFrame += "\n";
+     }
+    }
+    ASCIIvideo.innerHTML = asciiFrame;
+   }
+
+   requestAnimationFrame(videotoascii);
+  }
+
+  function showfps() {
+   consolelog.innerHTML = 'fps:' + fps;
+   fps = 0;
+  }
+  setInterval(showfps, 1000);
+
+  function playPause() {
+   if (render) {
+    render = false;
+    videotag.pause();
+    playpause.innerHTML = 'paused';
+   } else {
+    render = true;
+    videotag.play();
+    playpause.innerHTML = 'played';
+   }
+  }
+  function onLoad() {
+   if (true) {
+    videotag.style.display = "none";
+   } else {
+    ASCIIvideo.style.opacity = "50%"
+    canvas.style.opacity = "50%"
+   }
+   playpause.innerHTML = 'paused';
+   //playVid();
+  }
+  function togglecamera() {
+   if (camera) {
+    alert("please refresh this page");
+   } else {
+    camera = true;
+    camerainput.innerHTML = 'camera: true;';
+    constraints = {
+     video: {
+      width: w,
+      height: w,
+
+      facingMode: 'environment'
+     },
+     audio: false
+    };
+    navigator.mediaDevices.getUserMedia(constraints)
+    .then(stream => {
+     videotag.srcObject = stream;
+    })
+    .catch(error => {
+     console.error('Error accessing camera:', error);
+     consolelog.innerHTML = 'error ' + error;
+    });
+    videoload();
+   }
+  }
+
+  function changewidth(cwidth) {
+   if (cwidth >= 1) {
+    w = cwidth;
+    videoload();
+   }
+  }
+
+  function togglevideo() {
+   if (ASCIIvideo.style.mixBlendMode == '') {
+    canvas.style.display = "inline";
+    if (r) {
+     ASCIIvideo.style.mixBlendMode = 'screen';
+    } else {
+     ASCIIvideo.style.mixBlendMode = 'darken';
+    }
+    togglevideoe.innerHTML = 'color1: true;';
+    vc = true;
+   } else {
+    canvas.style.display = "none";
+    ASCIIvideo.style.mixBlendMode = '';
+    togglevideoe.innerHTML = 'color1: false;';
+    vc = false;
+   }
+  }
+
+  function togglecolor() {
+   if (c) {
+    c = false;
+    togglecolore.innerHTML = 'color2: false;<font color="green">//lag</font>';
+   } else {
+    c = true;
+    togglecolore.innerHTML = 'color2: true;<font color="green">//lag</font>';
+   }
+  }
+
+
+  function togglereverse() {
+   if (r) {
+    r = false;
+    playpause.style.backgroundColor = widthinput.style.backgroundColor = ASCIIvideo.style.backgroundColor = body.style.backgroundColor = "black";
+    playpause.style.color = widthinput.style.color = body.style.color = "white";
+    togglereversee.innerHTML = 'theme: night;';
+   } else {
+    r = true;
+    playpause.style.backgroundColor = widthinput.style.backgroundColor = ASCIIvideo.style.backgroundColor = body.style.backgroundColor = "white";
+    playpause.style.color = widthinput.style.color = body.style.color = "black";
+    togglereversee.innerHTML = 'theme: light;';
+   }
+   if (vc) {
+    togglevideo();
+    togglevideo();
+   }
+   if (bloom) {
+    togglebloom();
+    togglebloom();
+   }
+   
+   temp = '';
+   for (i = chars.length-1; i >= 0; i--) {
+    temp += chars[i];
+   }
+   chars = temp.split('');
+  }
+  changebrightnesse.addEventListener('input', function() {
+   brightness = changebrightnesse.value;
+  });
+
+  function togglebloom() {
+   if (bloom) {
+    ASCIIvideo.style.textShadow = "";
+    bloome.innerHTML = 'false';
+    bloom = false;
+   } else {
+    if (r) {
+     ASCIIvideo.style.textShadow = "0 0 2px #000";
+    } else {
+     if(vc){
+     ASCIIvideo.style.textShadow = "0 0 1px #fff;";
+     } else {
+      ASCIIvideo.style.textShadow = "0 0 1px #fff,0 0 3px #fff";
+     }
+    }
+    bloome.innerHTML = 'true';
+    bloom = true;
+   }
+  }
+  function sobeltogle(){
+   if(sobel){
+    sobel = false;
+    edgeid.innerHTML = "edge = false;";
+   } else {
+    sobel = true;
+    edgeid.innerHTML = "edge = true;";
+   }
+  }
+function applySobelFilter(imageData) {
+   const width = imageData.width;
+   const height = imageData.height;
+   const data = imageData.data;
+/*
+   const sobelX = [
+    [-1, 0, 1],
+    [-2, 0, 2],
+    [-1, 0, 1]
+   ];
+   
+   const sobelY = [
+    [-1, -2, -1],
+    [0, 0, 0],
+    [1, 2, 1]
+   ];
+*/
+var a = 0.5;
+var b = 0.5;
+   const sobelX = [
+    [-a, 0, a],
+    [-b, 0, b],
+    [-a, 0, a]
+   ];
+   
+   const sobelY = [
+    [-a, -b, -a],
+    [0, 0, 0],
+    [a, b, a]
+   ];
+ 
+   const grayscaleData = new Uint8ClampedArray(width * height);
+
+   for (let i = 0; i < data.length; i += 4) {
+    const avg = (data[i] + data[i + 1] + data[i + 2]) / 3;
+    grayscaleData[i / 4] = avg;
+   }
+
+   const sobelData = new Uint8ClampedArray(width * height);
+
+   for (let y = 0; y < height; y++) {
+    for (let x = 0; x < width; x++) {
+     let pixelX = 0;
+     let pixelY = 0;
+
+     for (let row = -1; row <= 1; row++) {
+      for (let col = -1; col <= 1; col++) {
+       const currentX = x + col;
+       const currentY = y + row;
+
+       if (currentX >= 0 && currentX < width && currentY >= 0 && currentY < height) {
+        const index = currentY * width + currentX;
+        const gx = sobelX[row + 1][col + 1];
+        const gy = sobelY[row + 1][col + 1];
+        pixelX += grayscaleData[index] * gx;
+        pixelY += grayscaleData[index] * gy;
+       }
+      }
+     }
+
+     const index = y * width + x;
+     const magnitude = Math.sqrt(pixelX * pixelX + pixelY * pixelY);
+     sobelData[index] = magnitude > 255 ? 255 : magnitude;
+    }
+   }
+
+   for (let i = 0; i < data.length; i += 4) {
+    const value = sobelData[i / 4] / 255;
+    data[i] += data[i] * value;
+    data[i + 1] += data[i + 1] * value;
+    data[i + 2] += data[i + 2] * value;
+   }
+
+   return imageData;
+  }
+  function convertToHtmlEntities(text) {
+  return text.replace(/&/g, '&amp;')
+             .replace(/</g, '&lt;')
+             .replace(/>/g, '&gt;')
+             .replace(/"/g, '&quot;')
+             .replace(/'/g, '&#39;');
+}
+  if (window.attachEvent) {
+   window.attachEvent('onload', onLoad());
+  } else if (window.addEventListener) {
+   window.addEventListener('load', onLoad(), false);
+  } else {
+   document.addEventListener('load', onLoad(), false);
+  }
+ </script>
+</body>
+</html>
