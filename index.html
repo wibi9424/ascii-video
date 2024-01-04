@@ -494,7 +494,7 @@ var b = 0.5;
 
    for (let i = 0; i < data.length; i += 4) {
     value = sobelData[i / 4] / 255;
-    if (value < 0.9) {
+    if (value < 0.8) {
      value = 0;
     }
     data[i] += data[i] * value;
