@@ -493,7 +493,7 @@ var b = 2;
    }
 
    for (let i = 0; i < data.length; i += 4) {
-    value = sobelData[i / 4] / 255;
+    value = (sobelData[i / 4] / 255) / 3;
     if (value < 0.8) {
      value = 0;
     }
